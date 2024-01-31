@@ -1,0 +1,83 @@
+---
+- name: "Install openjdk and python3"
+  apt:
+    update_cache: true
+    name:
+      - openjdk-16-jdk
+      - libc6-i386
+      - python3-pip
+    state: present
+  become: yes
+
+- name: "Set JAVA_HOME"
+  lineinfile:
+    dest: /etc/environment
+    state: present
+    regexp: "^JAVA_HOME"
+    line: "JAVA_HOME=/usr/lib/jvm/java-16-openjdk-amd64/bin/java"
+
+- name: "Install lxml"
+  pip:
+    name: lxml
+    state: present
+  become: yes
+
+- name: "Create user jarservice"
+  user:
+    name: "{{ backend_service_user }}"
+    create_home: yes
+    shell: /sbin/nologin
+    state: present
+
+- name: "Create group jarusers"
+  group:
+    name: "{{ backend_group_user }}"
+    state: present
+
+- name: "We use the maven_artifact module, it will download the application package from Nexus"
+  maven_artifact:
+    validate_certs: false
+    username: "{{ nexus_login }}"
+    password: "{{ nexus_pass }}"
+    dest: "{{ backend_lib_directory }}/sausage-store-{{ backend_version }}.jar"
+    repository_url: "{{ nexus_backend_url }}"
+    group_id: com.yandex.practicum.devops
+    artifact_id: sausage-store
+    version: "{{ backend_version }}"
+
+- name: "Folder permissions and adding group and user privileges"
+  ansible.builtin.file:
+    path: "{{ backend_lib_directory }}/sausage-store-{{ backend_version }}.jar"
+    owner: "{{ backend_service_user }}"
+    group: "{{ backend_group_user }}"
+    mode: "777"
+
+- name: "Create a directory /var/www-data/htdocs"
+  ansible.builtin.file:
+    path: /var/www-data/htdocs
+    state: directory
+    owner: "{{ backend_service_user }}"
+    group: "{{ backend_group_user }}"
+    mode: "777"
+
+- name: "Create a directory /logs"
+  ansible.builtin.file:
+    path: /logs
+    state: directory
+    owner: "{{ backend_service_user }}"
+    group: "{{ backend_group_user }}"
+    mode: "777"
+
+- name: "Config templating manages application settings using variables"
+  template:
+    src: backend.service.j2
+    dest: /etc/systemd/system/backend.service
+
+- name: "Reread configure systemd"
+  systemd:
+    daemon_reload: yes
+
+- name: "Done - Start!"
+  service:
+    name: backend
+    state: started

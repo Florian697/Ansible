@@ -1,0 +1,119 @@
+---
+- name: "Create user front-user"
+  user:
+    name: "{{ frontend_service_user }}"
+    create_home: yes
+    shell: /sbin/nologin
+    state: present
+
+- name: "Create group front-user"
+  group:
+    name: "{{ frontend_group_user }}"
+    state: present
+
+- name: "Create a directory /var/www-data/dist/frontend"
+  ansible.builtin.file:
+    path: /var/www-data/dist/frontend
+    state: directory
+    owner: "{{ frontend_service_user }}"
+    group: "{{ frontend_group_user }}"
+    mode: "777"
+
+- name: "Create a directory /log"
+  ansible.builtin.file:
+    path: /log
+    state: directory
+    owner: "{{ frontend_service_user }}"
+    group: "{{ frontend_group_user }}"
+    mode: "777"
+
+- name: "Create a directory /log/reports"
+  ansible.builtin.file:
+    path: /log/reports
+    state: directory
+    owner: "{{ frontend_service_user }}"
+    group: "{{ frontend_group_user }}"
+    mode: "777"
+
+- name: "Install nodejs prerequisites"
+  apt:
+    name:
+      - apt-transport-https
+      - gcc
+      - g++
+      - make
+    state: present
+  become: yes
+
+- name: "Add nodejs apt key"
+  apt_key:
+    url: "https://deb.nodesource.com/gpgkey/nodesource.gpg.key"
+    state: present
+  become: yes
+
+- name: "Add nodejs repository"
+  apt_repository:
+    repo: "deb https://deb.nodesource.com/node_12.x {{ ansible_lsb.codename }} main"
+    state: present
+    update_cache: yes
+  become: yes
+
+- name: "Install nodejs"
+  apt:
+    name: nodejs
+    state: present
+  become: yes
+
+- name: "Install frontend  Nexus"
+  ansible.builtin.get_url:
+    validate_certs: false
+    url: "{{ nexus_frontend_url }}{{ frontend_version }}/sausage-store-{{ frontend_version }}.tar.gz"
+    dest: /var/www-data/dist/frontend
+    username: "{{ nexus_login }}"
+    password: "{{ nexus_pass }}"
+
+- name: "Folder permissions and adding group and user privileges"
+  ansible.builtin.file:
+    path: "/var/www-data/dist/frontend/sausage-store-{{ frontend_version }}.tar.gz"
+    owner: "{{ frontend_service_user }}"
+    group: "{{ frontend_group_user }}"
+    mode: "777"
+
+- name: "Download build scripts"
+  unarchive:
+    src: "/var/www-data/dist/frontend/sausage-store-{{ frontend_version }}.tar.gz"
+    dest: /var/www-data/dist/frontend
+    owner: "{{ frontend_service_user }}"
+    group: "{{ frontend_group_user }}"
+    mode: "777"
+    remote_src: yes
+
+- name: "Folder permissions and adding group and user privileges for /var/www-data/dist"
+  ansible.builtin.file:
+    path: /var/www-data/dist
+    owner: "{{ frontend_service_user }}"
+    group: "{{ frontend_group_user }}"
+    mode: "777"
+
+- name: "Shell script for up http-server"
+  shell: |
+    cd /var/www-data/dist/frontend/frontend
+    sudo npm install
+    sudo npm run build
+    cd /var/www-data/dist/frontend/frontend && sudo npm install -g http-server
+  become: yes
+  become_user: root
+
+- name: "Template configuration manage application settings using"
+  template:
+    src: frontend.service.j2
+    dest: /etc/systemd/system/frontend.service
+
+- name: "Reread Configuration systemd"
+  systemd:
+    daemon_reload: yes
+
+- name: "Done - Start!"
+  service:
+    name: frontend
+    state: started

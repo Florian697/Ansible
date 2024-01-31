@@ -1,0 +1,14 @@
+frontend:
+  hosts:
+    51.250.95.169: #your ip address machine
+      ansible_user: ansible
+  vars:
+    ansible_ssh_private_key_file: /home/ansible/.ssh/id_rsa
+    frontend_version: 1.0.497244
+    frontend_service_user: front-user
+    frontend_group_user: front-user
+    frontend_report_directory: /opt/sausage-store/reports
+    frontend_lib_directory: /home/jarservice
+    nexus_frontend_url: https://nexus.services.ru
+    nexus_login: <login> #your login for nexus
+    nexus_pass: <pass> #your password for nexus

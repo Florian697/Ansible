@@ -1,0 +1,18 @@
+[Unit]
+Description=java.sausege
+After=syslog.target network.target
+
+[Service]
+User={{ frontend_service_user }}
+Group={{ frontend_group_user }}
+
+Environment=REPORT_PATH=/log/reports
+Environment=LOG_PATH=/log
+ExecStart=http-server /var/www-data/dist/frontend/frontend -p 4040 --proxy http://localhost:8080
+ExecStop=/bin/kill -15 $MAINPID
+StandardOutput=append:/log/out-front.log
+KillMode=process
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

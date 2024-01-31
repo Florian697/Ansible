@@ -1,0 +1,16 @@
+backend: # Группа хостов с именем backend
+  hosts:
+    51.250.95.169: #your ip address machine
+      ansible_user: ansible
+  vars: # Переменные для группы backend
+    ansible_ssh_private_key_file: /home/ansible/.ssh/id_rsa
+    backend_version: 1.0.528982
+    backend_maven_version: 0.1.0
+    backend_service_user: jarservice
+    backend_group_user: jarusers
+    backend_report_directory: /var/www-data/htdocs
+    backend_log_directory: /var/www-data/htdocs
+    backend_lib_directory: /home/jarservice
+    nexus_backend_url: https://nexus.services.ru
+    nexus_login: <login> #your login for nexus
+    nexus_pass: <pass> #your password for nexus

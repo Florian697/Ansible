@@ -1,0 +1,22 @@
+- name: Клонирование OpenVPN
+  git:
+    repo: https://github.com/angristan/openvpn-install.git
+    dest: ~/openvpn
+    update: yes
+
+- name: Экспорт переменной для автоустановки
+  lineinfile:
+    path: ~/.bashrc
+    line: 'export AUTO_INSTALL="y"'
+    create: yes
+
+- name: Применение изменений в .bashrc
+  shell: . ~/.bashrc
+
+- name: Установка OpenVPN
+  shell: ./openvpn-install.sh
+  args:
+    chdir: ~/openvpn
+  async: 120
+  poll: 10
+

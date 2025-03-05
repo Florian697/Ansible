@@ -1,0 +1,16 @@
+---
+- name: Write results to file
+  run_once: true
+  delegate_to: localhost
+  vars:
+    result_table: |
+      hostname,IP,OS,Nginx,Consul,Nomad,Vault,Docker,Kafka,Redis,ELK,CH,Scylla,PHP,Тип обновления,Примечание
+      {% for host in ansible_play_hosts %}
+      {{ hostvars[host].inventory_hostname | default('нет ключа') }},{{ hostvars[host].ansible_default_ipv4.address | default('-') }},{{ hostvars[host].os_info.stdout | default('-') }},{{ hostvars[host].nginx_version.stdout | default('-') }},{{ hostvars[host].consul_version.stdout | default('-') }},{{ hostvars[host].nomad_version.stdout | default('-') }},{{ hostvars[host].vault_version.stdout | default('-') }},{{ hostvars[host].docker_version.stdout | default('-') }},{{ hostvars[host].kafka_version.stdout | default('-') }},{{ hostvars[host].redis_version.stdout | default('-') }},{{ hostvars[host].elk_version.stdout | default('-') }},{{ hostvars[host].ch_version.stdout | default('-') }},{{ hostvars[host].scylla_version.stdout | default('-') }},{{ hostvars[host].php_version.stdout | default('-') }},,
+      {% endfor %}
+      {% for host in unreachable_hosts %}
+      {{ host }},-,-,-,-,-,-,-,-,-,-,-,-,-,нет доступа
+      {% endfor %}
+  copy:
+    content: "{{ result_table }}"
+    dest: ~/application_versions.csv

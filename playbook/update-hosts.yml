@@ -1,0 +1,6 @@
+- name: Update server
+  hosts: "{{ host_to_deploy }}"
+  become: true
+
+  roles:
+    - update

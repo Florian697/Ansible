@@ -1,0 +1,8 @@
+---
+#Задача по сбору информации версий приложений
+- name: Gather application versions
+  include_tasks: gather_versions.yml
+
+#Задача по формированию таблицы собранных версий
+- name: Write results to file
+  include_tasks: write_results.yml

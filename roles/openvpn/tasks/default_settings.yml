@@ -1,0 +1,14 @@
+---
+- name: обновление репы
+  shell:
+    cmd: "apt-get update -y"
+
+
+- name: установка окружения
+  package:
+    name:
+      - git
+    update_cache: yes
+
+
+

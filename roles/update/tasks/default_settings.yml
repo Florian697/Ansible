@@ -1,0 +1,20 @@
+---
+- name: обновление репы
+  shell:
+    cmd: "apt-get update -y"
+
+
+- name: установка окружения
+  package:
+    name:
+      - htop
+      - tcpdump
+      - curl
+      - zip
+      - nmap
+      - pwgen
+      - git
+    update_cache: yes
+
+
+

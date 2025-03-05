@@ -1,0 +1,2 @@
+[test]
+openvpn ansible_host= ansible_user=root

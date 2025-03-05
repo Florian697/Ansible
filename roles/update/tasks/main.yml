@@ -1,0 +1,8 @@
+- name: Update .app
+  include_tasks: default_settings.yml
+
+- name: Change hostname
+  include_tasks: change-hostname.yml
+
+- name: Install openvpn
+  include_tasks: open-vpn.yml
